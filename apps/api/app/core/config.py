@@ -111,6 +111,21 @@ class Settings(BaseSettings):
             return [str(origin).strip() for origin in v if str(origin).strip()]
         return ["http://localhost:3000"]
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: object) -> str:
+        """Ensure DATABASE_URL uses the async psycopg driver (postgresql+psycopg://)."""
+        if isinstance(v, str):
+            s = v.strip()
+            if s.startswith("postgres://"):
+                return "postgresql+psycopg://" + s[len("postgres://"):]
+            if s.startswith("postgresql+psycopg2://"):
+                return "postgresql+psycopg://" + s[len("postgresql+psycopg2://"):]
+            if s.startswith("postgresql://"):
+                return "postgresql+psycopg://" + s[len("postgresql://"):]
+            return s
+        return str(v)
+
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v: str, info: object) -> str:
