@@ -79,7 +79,7 @@ class Settings(BaseSettings):
     external_rag_enabled: bool = False
 
     # ── Security ─────────────────────────────────────────────────
-    cors_origins: list[str] = Field(default=["http://localhost:3000"])
+    cors_origins: list[str] | str = Field(default=["http://localhost:3000"])
     rate_limit_per_minute: int = 30
     secret_key: str = "dev-secret-key-change-in-production"
 
@@ -92,11 +92,24 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
-        """Parse CORS origins from comma-separated string or list."""
+    def parse_cors_origins(cls, v: object) -> list[str]:
+        """Parse CORS origins from JSON list, comma-separated string, or list."""
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+            v_str = v.strip()
+            if not v_str:
+                return ["*"]
+            if v_str.startswith("[") and v_str.endswith("]"):
+                import json
+                try:
+                    parsed = json.loads(v_str)
+                    if isinstance(parsed, list):
+                        return [str(x).strip() for x in parsed if str(x).strip()]
+                except Exception:
+                    pass
+            return [origin.strip() for origin in v_str.split(",") if origin.strip()]
+        if isinstance(v, (list, tuple, set)):
+            return [str(origin).strip() for origin in v if str(origin).strip()]
+        return ["http://localhost:3000"]
 
     @field_validator("secret_key")
     @classmethod
