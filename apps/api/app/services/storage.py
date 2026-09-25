@@ -29,14 +29,14 @@ class StorageService:
         
         self.bucket = self.settings.object_storage_bucket
         
-        # Configure Boto3 client for MinIO
+        # Configure Boto3 client for MinIO / S3 / Supabase
         self.client = boto3.client(
             "s3",
             endpoint_url=self.settings.object_storage_endpoint,
             aws_access_key_id=self.settings.object_storage_access_key,
             aws_secret_access_key=self.settings.object_storage_secret_key,
             config=Config(signature_version="s3v4"),
-            region_name="us-east-1",  # Required by boto3 even if not used by MinIO
+            region_name=self.settings.object_storage_region,
         )
         
         # Ensure bucket exists
@@ -47,13 +47,23 @@ class StorageService:
         try:
             self.client.head_bucket(Bucket=self.bucket)
         except ClientError as e:
-            error_code = e.response.get("Error", {}).get("Code")
-            if error_code == "404":
+            error_code = str(e.response.get("Error", {}).get("Code", ""))
+            if error_code in ("404", "NoSuchBucket"):
                 logger.info("creating_storage_bucket", bucket=self.bucket)
-                self.client.create_bucket(Bucket=self.bucket)
+                try:
+                    if self.settings.object_storage_region == "us-east-1":
+                        self.client.create_bucket(Bucket=self.bucket)
+                    else:
+                        self.client.create_bucket(
+                            Bucket=self.bucket,
+                            CreateBucketConfiguration={"LocationConstraint": self.settings.object_storage_region},
+                        )
+                except Exception as create_err:
+                    logger.warning("could_not_create_bucket_automatically", error=str(create_err))
+            elif error_code in ("403", "AccessDenied"):
+                logger.info("bucket_head_access_restricted_continuing", bucket=self.bucket)
             else:
-                logger.error("storage_bucket_check_failed", error=str(e))
-                raise
+                logger.warning("storage_bucket_check_warning", error=str(e))
 
     def put_private(
         self,

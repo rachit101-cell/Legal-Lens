@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     object_storage_bucket: str = "legallens-private"
     object_storage_access_key: str = "minioadmin"
     object_storage_secret_key: str = "minioadmin"
+    object_storage_region: str = "us-east-1"
 
     # ── LLM Provider ─────────────────────────────────────────────
     llm_api_base: str = "https://api.openai.com/v1"
