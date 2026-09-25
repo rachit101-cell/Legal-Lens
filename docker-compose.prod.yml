@@ -1,0 +1,58 @@
+services:
+  db:
+    image: ankane/pgvector:v0.5.0 # PostgreSQL + pgvector
+    restart: always
+    environment:
+      POSTGRES_DB: legallens_prod
+      POSTGRES_USER: legallens
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - prod_redis_data:/data
+    networks:
+      - internal
+
+  api:
+    build:
+      context: ./apps/api
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://legallens:${DB_PASSWORD}@db:5432/legallens_prod
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ENVIRONMENT=production
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - internal
+      - web
+
+  web:
+    build:
+      context: ./apps/web
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.legallens.app
+    ports:
+      - "3000:3000"
+    networks:
+      - web
+
+volumes:
+  prod_postgres_data:
+  prod_redis_data:
+
+networks:
+  internal:
+    internal: true
+  web:

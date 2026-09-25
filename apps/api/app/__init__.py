@@ -1,0 +1,1 @@
+"""LegalLens API application package."""

@@ -1,0 +1,60 @@
+[project]
+name = "legallens-api"
+version = "0.1.0"
+description = "LegalLens - AI Legal Document Risk & Action Navigator"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "T20",  # flake8-print
+    "ANN",  # flake8-annotations
+    "S",    # flake8-bandit
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "ANN101",  # missing type annotation for self
+    "ANN102",  # missing type annotation for cls
+    "ANN401",  # dynamically typed expressions (Any)
+    "S101",    # use of assert (allowed in tests)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "packages"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "apps/api/tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "security: Security tests",
+    "slow: Slow tests",
+]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
