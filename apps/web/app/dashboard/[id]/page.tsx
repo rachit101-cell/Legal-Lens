@@ -662,63 +662,87 @@ ${questionsList
   return (
     <div className={styles.container}>
       {/* ── Left Sidebar Navigation ────────────────────────────── */}
-      <aside className={styles.sidebar}>
-        <div className={styles.logoIcon} title="LegalLens Intelligence">
+      <aside className={styles.sidebar} aria-label="Workspace Sidebar">
+        <div className={styles.logoIcon} title="LegalLens Intelligence" aria-label="LegalLens Logo">
           L
         </div>
 
-        <button
-          className={`${styles.navButton} ${activeTab === "overview" ? styles.active : ""}`}
-          onClick={() => setActiveTab("overview")}
-          title="Situation Map & Overview"
-        >
-          <LayoutDashboard size={20} />
-        </button>
+        <nav role="tablist" aria-label="Dashboard views" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
+          <button
+            role="tab"
+            aria-selected={activeTab === "overview"}
+            aria-controls="panel-overview"
+            aria-label="Situation Map & Overview"
+            className={`${styles.navButton} ${activeTab === "overview" ? styles.active : ""}`}
+            onClick={() => setActiveTab("overview")}
+            title="Situation Map & Overview"
+          >
+            <LayoutDashboard size={20} aria-hidden="true" />
+          </button>
 
-        <button
-          className={`${styles.navButton} ${activeTab === "viewer" ? styles.active : ""}`}
-          onClick={() => setActiveTab("viewer")}
-          title="Document Viewer & Clauses"
-        >
-          <FileText size={20} />
-        </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "viewer"}
+            aria-controls="panel-viewer"
+            aria-label="Document Viewer & Clauses"
+            className={`${styles.navButton} ${activeTab === "viewer" ? styles.active : ""}`}
+            onClick={() => setActiveTab("viewer")}
+            title="Document Viewer & Clauses"
+          >
+            <FileText size={20} aria-hidden="true" />
+          </button>
 
-        <button
-          className={`${styles.navButton} ${activeTab === "findings" ? styles.active : ""}`}
-          onClick={() => setActiveTab("findings")}
-          title="Attention Items & Risks"
-        >
-          <AlertTriangle size={20} />
-        </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "findings"}
+            aria-controls="panel-findings"
+            aria-label="Attention Items & Risks"
+            className={`${styles.navButton} ${activeTab === "findings" ? styles.active : ""}`}
+            onClick={() => setActiveTab("findings")}
+            title="Attention Items & Risks"
+          >
+            <AlertTriangle size={20} aria-hidden="true" />
+          </button>
 
-        <button
-          className={`${styles.navButton} ${activeTab === "timeline" ? styles.active : ""}`}
-          onClick={() => setActiveTab("timeline")}
-          title="Chronological Timeline"
-        >
-          <Clock size={20} />
-        </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "timeline"}
+            aria-controls="panel-timeline"
+            aria-label="Chronological Timeline"
+            className={`${styles.navButton} ${activeTab === "timeline" ? styles.active : ""}`}
+            onClick={() => setActiveTab("timeline")}
+            title="Chronological Timeline"
+          >
+            <Clock size={20} aria-hidden="true" />
+          </button>
 
-        <button
-          className={`${styles.navButton} ${activeTab === "checklist" ? styles.active : ""}`}
-          onClick={() => setActiveTab("checklist")}
-          title="Checklist & Lawyer Questions"
-        >
-          <CheckSquare size={20} />
-        </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "checklist"}
+            aria-controls="panel-checklist"
+            aria-label="Checklist & Lawyer Questions"
+            className={`${styles.navButton} ${activeTab === "checklist" ? styles.active : ""}`}
+            onClick={() => setActiveTab("checklist")}
+            title="Checklist & Lawyer Questions"
+          >
+            <CheckSquare size={20} aria-hidden="true" />
+          </button>
+        </nav>
 
         <div style={{ flex: 1 }} />
 
         <button
+          aria-expanded={isChatOpen}
+          aria-label={isChatOpen ? "Collapse AI Assistant" : "Open AI Assistant"}
           className={`${styles.navButton} ${isChatOpen ? styles.active : ""}`}
           onClick={() => setIsChatOpen(!isChatOpen)}
           title={isChatOpen ? "Collapse AI Assistant" : "Open AI Assistant"}
         >
-          <MessageSquare size={20} />
+          <MessageSquare size={20} aria-hidden="true" />
         </button>
 
-        <Link href="/upload" className={styles.navButton} title="Upload New Document">
-          <ArrowLeft size={20} />
+        <Link href="/upload" className={styles.navButton} title="Upload New Document" aria-label="Upload New Document">
+          <ArrowLeft size={20} aria-hidden="true" />
         </Link>
       </aside>
 
@@ -748,9 +772,12 @@ ${questionsList
               <button
                 className={styles.exportButton}
                 onClick={() => setShowExportMenu(!showExportMenu)}
+                aria-haspopup="true"
+                aria-expanded={showExportMenu}
+                aria-label="Export Executive Analysis Report"
                 title="Export Executive Analysis Report"
               >
-                <Download size={14} /> Export Report <ChevronDown size={12} />
+                <Download size={14} aria-hidden="true" /> Export Report <ChevronDown size={12} aria-hidden="true" />
               </button>
 
               {showExportMenu && (
@@ -1300,17 +1327,26 @@ ${questionsList
 
                     {/* Citations Box */}
                     {msg.citations && msg.citations.length > 0 && (
-                      <div className={styles.citationsBox}>
+                      <div className={styles.citationsBox} role="group" aria-label="Cited sources">
                         {msg.citations.map((cit, idx) => (
                           <div
                             key={idx}
+                            role="button"
+                            tabIndex={0}
                             className={styles.citationItem}
                             onClick={() => jumpToClause(cit.source_ids?.[0])}
-                            title="Click to locate clause in document viewer"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                jumpToClause(cit.source_ids?.[0]);
+                              }
+                            }}
+                            title="Click or press Enter to locate clause in document viewer"
+                            aria-label={`Source citation: ${cit.claim}. Press Enter to jump to clause in viewer.`}
                           >
                             <div className={styles.citationHeader}>
                               <span>Source: Clause Citation</span>
-                              <ExternalLink size={10} />
+                              <ExternalLink size={10} aria-hidden="true" />
                             </div>
                             <div className={styles.citationQuote}>"{cit.claim}"</div>
                           </div>
@@ -1322,12 +1358,12 @@ ${questionsList
               ))}
 
               {isTyping && (
-                <div className={`${styles.message} ${styles.assistant}`}>
-                  <div className={`${styles.avatar} ${styles.assistant}`}>
+                <div className={`${styles.message} ${styles.assistant}`} role="status" aria-live="polite">
+                  <div className={`${styles.avatar} ${styles.assistant}`} aria-hidden="true">
                     <Scale size={16} />
                   </div>
                   <div className={styles.messageBubble}>
-                    <div className={styles.typingIndicator}>
+                    <div className={styles.typingIndicator} aria-label="Assistant is analyzing document clauses">
                       <span />
                       <span />
                       <span />
@@ -1344,6 +1380,7 @@ ${questionsList
                 <input
                   type="text"
                   placeholder="Ask a question grounded in this document..."
+                  aria-label="Ask a question grounded in this document"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -1354,8 +1391,9 @@ ${questionsList
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isTyping || !sessionId}
                   title="Send Question"
+                  aria-label="Send Question"
                 >
-                  <Send size={15} />
+                  <Send size={15} aria-hidden="true" />
                 </button>
               </div>
               <div className={styles.chatDisclaimer}>

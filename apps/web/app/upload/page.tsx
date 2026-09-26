@@ -96,9 +96,9 @@ export default function UploadPage() {
         </Link>
       </header>
 
-      <main className={styles.main}>
+      <main id="main-content" className={styles.main}>
         <div className={styles.uploadCard}>
-          <div className={styles.cardHeaderIcon}>
+          <div className={styles.cardHeaderIcon} aria-hidden="true">
             <Scale size={28} strokeWidth={2} />
           </div>
           <h1 className={styles.title}>Secure Document Ingestion</h1>
@@ -106,6 +106,15 @@ export default function UploadPage() {
 
           <div 
             className={`${styles.dropzone} ${isDragging ? styles.dragActive : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload legal document dropzone. Drag and drop file or press Enter or Space to browse files."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={(e) => {
@@ -119,6 +128,8 @@ export default function UploadPage() {
             <input 
               type="file" 
               ref={fileInputRef} 
+              aria-label="Select PDF or DOCX contract file"
+              tabIndex={-1}
               style={{ display: "none" }}
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={(e) => {
@@ -127,45 +138,52 @@ export default function UploadPage() {
               }}
             />
             
-            <div className={styles.dropzoneIcon}>
+            <div className={styles.dropzoneIcon} aria-hidden="true">
               <UploadCloud size={30} strokeWidth={1.8} />
             </div>
             <div className={styles.dropzoneText}>Drag &amp; drop your legal document here</div>
             <div className={styles.dropzoneSubtext}>Supports Adobe PDF and Microsoft Word (.docx) up to 20MB</div>
-            <button className={styles.browseButton} type="button">Select File from Computer</button>
+            <button 
+              className={styles.browseButton} 
+              type="button"
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              Select File from Computer
+            </button>
           </div>
 
           {error && (
-            <div className={styles.errorBox}>
-              <AlertTriangle size={18} />
+            <div className={styles.errorBox} role="alert" aria-live="assertive">
+              <AlertTriangle size={18} aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
 
           <div className={styles.securityNote}>
-            <Lock size={14} className={styles.securityIcon} />
+            <Lock size={14} className={styles.securityIcon} aria-hidden="true" />
             <span>Encrypted with TLS 1.3. Documents are processed ephemerally with zero data retention.</span>
           </div>
 
           {isProcessing && (
-            <div className={styles.processingOverlay}>
-              <div className={styles.spinner} />
+            <div className={styles.processingOverlay} role="status" aria-live="polite">
+              <div className={styles.spinner} aria-hidden="true" />
               <div className={styles.processingTitle}>Analyzing Document</div>
               <div className={styles.stageList}>
                 <div className={`${styles.stageItem} ${processingStage >= 0 ? (processingStage > 0 ? styles.completed : styles.active) : ''}`}>
-                  <div className={styles.stageIcon}>
+                  <div className={styles.stageIcon} aria-hidden="true">
                     {processingStage > 0 ? <CheckCircle size={14} /> : '1'}
                   </div>
                   <span>Uploading securely</span>
                 </div>
                 <div className={`${styles.stageItem} ${processingStage >= 1 ? (processingStage > 1 ? styles.completed : styles.active) : ''}`}>
-                  <div className={styles.stageIcon}>
+                  <div className={styles.stageIcon} aria-hidden="true">
                     {processingStage > 1 ? <CheckCircle size={14} /> : '2'}
                   </div>
                   <span>Extracting clauses &amp; layout</span>
                 </div>
                 <div className={`${styles.stageItem} ${processingStage >= 2 ? (processingStage > 2 ? styles.completed : styles.active) : ''}`}>
-                  <div className={styles.stageIcon}>
+                  <div className={styles.stageIcon} aria-hidden="true">
                     {processingStage > 2 ? <CheckCircle size={14} /> : '3'}
                   </div>
                   <span>Synthesizing Situation Map &amp; Risks</span>

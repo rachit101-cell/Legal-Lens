@@ -27,16 +27,35 @@ logger = structlog.get_logger()
 
 
 def _classify_clause(text: str) -> ClauseType:
-    """Simple rule-based clause classification."""
-    lower = text.lower()
-    if any(w in lower for w in ["governing law", "jurisdiction", "governed by"]):
+    """Deterministic legal clause taxonomy classification with heading and context awareness."""
+    lower = text.lower().strip()
+    first_line = lower.split("\n")[0] if "\n" in lower else lower
+
+    # Check headings or titles first
+    if any(w in first_line for w in ["terminate", "termination", "cancellation"]):
+        return ClauseType.TERMINATION_NOTICE
+    if any(re.search(rf"\b{re.escape(w)}\b", first_line) for w in ["term", "terms", "renewal", "expiration", "duration"]):
+        return ClauseType.TERM_RENEWAL
+    if any(w in first_line for w in ["governing law", "jurisdiction", "governed by", "dispute"]):
         return ClauseType.DISPUTE_GOVERNING_LAW
+    if any(w in first_line for w in ["confidential", "non-disclosure", "nda", "proprietary"]):
+        return ClauseType.CONFIDENTIALITY_IP
+    if any(w in first_line for w in ["liability", "indemnif", "hold harmless"]):
+        return ClauseType.LIABILITY_INDEMNITY
+    if any(w in first_line for w in ["payment", "fees", "rent", "compensation"]):
+        return ClauseType.PAYMENT_FEES
+
+    # Body text matching
+    if any(w in lower for w in ["governing law", "jurisdiction", "governed by", "construed in accordance"]):
+        return ClauseType.DISPUTE_GOVERNING_LAW
+    if any(w in lower for w in ["maximum liability", "limitation of liability", "indemnif", "hold harmless"]):
+        return ClauseType.LIABILITY_INDEMNITY
     if any(w in lower for w in ["terminate", "termination", "cancel"]):
         return ClauseType.TERMINATION_NOTICE
-    if any(w in lower for w in ["confidential", "non-disclosure", "nda", "proprietary"]):
+    if any(re.search(rf"\b{re.escape(w)}\b", lower) for w in ["expire three", "expire", "renewal", "initial term", "extended term"]):
+        return ClauseType.TERM_RENEWAL
+    if any(w in lower for w in ["confidential information", "non-disclosure", "nda", "proprietary"]):
         return ClauseType.CONFIDENTIALITY_IP
-    if any(w in lower for w in ["indemnif", "hold harmless", "liability"]):
-        return ClauseType.LIABILITY_INDEMNITY
     if any(w in lower for w in ["payment", "fee", "compensation", "amount", "pay"]):
         return ClauseType.PAYMENT_FEES
     if any(w in lower for w in ["warrant", "representation", "guarantee"]):

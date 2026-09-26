@@ -17,6 +17,7 @@ from packages.schemas.domain import HealthResponse
 router = APIRouter(tags=["health"])
 
 
+@router.get("/health", response_model=HealthResponse)
 @router.get("/api/v1/health", response_model=HealthResponse)
 async def health_check(request: Request) -> HealthResponse:
     """

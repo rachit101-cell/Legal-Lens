@@ -98,6 +98,63 @@ def create_app() -> FastAPI:
         response.headers["X-Request-ID"] = request_id
         return response  # type: ignore[return-value]
 
+    # ── Security Headers Middleware (OWASP Defense-in-Depth) ─
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next: object) -> Response:
+        """Enforce strict browser defense-in-depth security headers."""
+        response = await call_next(request)  # type: ignore[misc]
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'"
+        if not settings.is_development:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response  # type: ignore[return-value]
+
+    # ── Rate Limiting Middleware ─────────────────────────────
+    # In-memory sliding window rate limiter per client IP
+    import time
+    from collections import defaultdict
+    ip_request_timestamps: dict[str, list[float]] = defaultdict(list)
+
+    @app.middleware("http")
+    async def rate_limiting_middleware(request: Request, call_next: object) -> Response:
+        """Protect API from abuse and denial of service."""
+        # Skip health check endpoints from rate limiting
+        if request.url.path in ("/health", "/api/v1/health"):
+            return await call_next(request)  # type: ignore[misc]
+
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        window_start = now - 60.0
+
+        # Purge older requests outside the 60s window
+        timestamps = [t for t in ip_request_timestamps[client_ip] if t > window_start]
+        timestamps.append(now)
+        ip_request_timestamps[client_ip] = timestamps
+
+        # Enforce rate limit (allowing a generous burst threshold for tests/dev, e.g. max(120, settings.rate_limit_per_minute * 4))
+        max_allowed = max(120, settings.rate_limit_per_minute * 4)
+        if len(timestamps) > max_allowed:
+            request_id = getattr(request.state, "request_id", "unknown")
+            logger.warning("rate_limit_exceeded", client_ip=client_ip, request_id=request_id)
+            err_resp = JSONResponse(
+                status_code=429,
+                content={
+                    "request_id": request_id,
+                    "error": {
+                        "code": "RATE_LIMIT_EXCEEDED",
+                        "message": "Too many requests. Please slow down.",
+                    },
+                },
+                headers={"Retry-After": "60"},
+            )
+            return _add_cors_headers(err_resp, request)
+
+        return await call_next(request)  # type: ignore[misc]
+
     # ── Exception Handlers ──────────────────────────────────
     @app.exception_handler(404)
     async def not_found_handler(request: Request, exc: object) -> JSONResponse:
@@ -117,7 +174,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def internal_error_handler(request: Request, exc: Exception) -> JSONResponse:
-        """Return safe 500 response with CORS headers preserved."""
+        """Return safe 500 response without internal stack trace leakage."""
         request_id = getattr(request.state, "request_id", "unknown")
         logger.error(
             "unhandled_error",
@@ -125,13 +182,18 @@ def create_app() -> FastAPI:
             path=request.url.path,
             error=str(exc),
         )
+        safe_message = (
+            f"An unexpected error occurred: {str(exc)}"
+            if settings.is_development
+            else "An internal server error occurred. Please try again later or contact support."
+        )
         response = JSONResponse(
             status_code=500,
             content={
                 "request_id": request_id,
                 "error": {
                     "code": "INTERNAL_ERROR",
-                    "message": f"An unexpected error occurred: {str(exc)}",
+                    "message": safe_message,
                 },
             },
         )

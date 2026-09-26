@@ -40,18 +40,18 @@ export default function Home() {
           <span className={styles.brandName}>LegalLens</span>
           <span className={styles.brandBadge}>PRO</span>
         </div>
-        <nav className={styles.nav}>
+        <nav className={styles.nav} aria-label="Main navigation">
           <Link href="#preview" className={styles.navLink}>Live Engine</Link>
           <Link href="#features" className={styles.navLink}>Capabilities</Link>
           <Link href="#architecture" className={styles.navLink}>Architecture</Link>
           <Link href="/upload" className={styles.navCta}>
             <span>Open Workspace</span>
-            <ChevronRight size={14} />
+            <ChevronRight size={14} aria-hidden="true" />
           </Link>
         </nav>
       </header>
 
-      <main className={styles.main}>
+      <main id="main-content" className={styles.main}>
         {/* Shimmering Verification Pill */}
         <div className={styles.badge}>
           <span className={styles.badgePulse}>
