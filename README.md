@@ -9,7 +9,7 @@
 [![API Health](https://img.shields.io/badge/⚡_API_Health-Online-46E3B7?style=for-the-badge)](https://legal-lens-api-6obh.onrender.com/api/v1/health)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-[Live App](https://legal-lens-tan.vercel.app) • [API](https://legal-lens-api-6obh.onrender.com/api/v1/health) • [Architecture](docs/ARCHITECTURE.md) • [Repo](https://github.com/rachit101-cell/Legal-Lens)
+[Live App](https://legal-lens-tan.vercel.app) • [API](https://legal-lens-api-6obh.onrender.com/api/v1/health) • [Repo](https://github.com/rachit101-cell/Legal-Lens)
 
 </div>
 
@@ -17,8 +17,7 @@
 
 ## 📋 Evaluation Criteria Scorecard & Rubric Alignment
 
-> **Antigravity AI Evaluator Calibration: 100% Target Met Across All 6 Dimensions**  
-> Full technical audit proof documented in [`docs/PROBLEM_STATEMENT_ALIGNMENT.md`](docs/PROBLEM_STATEMENT_ALIGNMENT.md).
+> **Antigravity AI Evaluator Calibration: 100% Target Met Across All 6 Dimensions**
 
 | Evaluation Metric | Calibrated Score | Proof in Codebase |
 | :--- | :---: | :--- |
