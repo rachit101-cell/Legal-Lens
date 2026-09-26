@@ -40,12 +40,15 @@ uploads/
 legallens.db
 
 # ---- Test / scratch files (root-level) ----
-test_*.py
-test_*.pdf
+/test_*.py
+/test_*.pdf
 dummy.pdf
 sample_*.pdf
 create_pdf.py
 generate_test_msa_pdf.py
+!tests/**
+tests/**/__pycache__/
+tests/**/.pytest_cache/
 
 # ---- Node / Next.js ----
 node_modules/
