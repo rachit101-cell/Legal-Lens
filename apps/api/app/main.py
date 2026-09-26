@@ -10,23 +10,26 @@ from __future__ import annotations
 import os
 import sys
 import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 # Add the root workspace directory so 'packages' can be found
-root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+root_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Fix for psycopg on Windows with asyncio — must happen before any async imports
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import asyncio
+
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # Force UTF-8 for standard output to prevent 'charmap' encoding errors in logging
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    if hasattr(sys.stderr, 'reconfigure'):
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import structlog
 from fastapi import FastAPI, Request, Response
@@ -117,6 +120,7 @@ def create_app() -> FastAPI:
     # In-memory sliding window rate limiter per client IP
     import time
     from collections import defaultdict
+
     ip_request_timestamps: dict[str, list[float]] = defaultdict(list)
 
     @app.middleware("http")
@@ -183,7 +187,7 @@ def create_app() -> FastAPI:
             error=str(exc),
         )
         safe_message = (
-            f"An unexpected error occurred: {str(exc)}"
+            f"An unexpected error occurred: {exc!s}"
             if settings.is_development
             else "An internal server error occurred. Please try again later or contact support."
         )
@@ -200,10 +204,10 @@ def create_app() -> FastAPI:
         return _add_cors_headers(response, request)
 
     # ── Register Routers ────────────────────────────────────
-    from app.api.health import router as health_router
-    from app.api.documents import router as documents_router
     from app.api.analysis import router as analysis_router
     from app.api.chat import router as chat_router
+    from app.api.documents import router as documents_router
+    from app.api.health import router as health_router
 
     app.include_router(health_router)
     app.include_router(documents_router, prefix="/api/v1")

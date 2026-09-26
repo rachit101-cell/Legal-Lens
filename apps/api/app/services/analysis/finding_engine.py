@@ -7,7 +7,7 @@ anomalies, or missing information.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import structlog
 
@@ -21,9 +21,9 @@ class FindingEngine:
     """Service to run analytical detectors and generate Findings."""
 
     def generate_findings(
-        self, 
-        document_id: str, 
-        analysis_id: str, 
+        self,
+        document_id: str,
+        analysis_id: str,
         clauses: Sequence[Clause],
         entities: Sequence[Entity],
     ) -> list[Finding]:
@@ -31,7 +31,7 @@ class FindingEngine:
         Run heuristic rules over clauses and entities.
         """
         findings: list[Finding] = []
-        
+
         has_termination = False
         has_governing_law = False
 
@@ -40,7 +40,7 @@ class FindingEngine:
                 has_termination = True
             elif clause.taxonomy_class == "Governing Law":
                 has_governing_law = True
-                
+
         # Detector 1: Missing Termination Clause
         if not has_termination:
             findings.append(
@@ -55,7 +55,7 @@ class FindingEngine:
                     clause_ids=[],
                 )
             )
-            
+
         # Detector 2: Missing Governing Law
         if not has_governing_law:
             findings.append(

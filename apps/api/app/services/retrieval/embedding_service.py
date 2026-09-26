@@ -14,6 +14,7 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class EmbeddingService:
     """Service to generate dense vector embeddings."""
 
@@ -34,6 +35,7 @@ class EmbeddingService:
         Generate embeddings for a list of texts.
         """
         return [self.embed_text(t) for t in texts]
+
 
 # Singleton
 embedding_service = EmbeddingService()

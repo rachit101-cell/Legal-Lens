@@ -37,11 +37,7 @@ def calculate_precision_recall(expected: set[Any], actual: set[Any]) -> tuple[fl
         else 0.0
     )
 
-    f1 = (
-        2 * (precision * recall) / (precision + recall)
-        if (precision + recall) > 0
-        else 0.0
-    )
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
 
     return round(precision, 4), round(recall, 4), round(f1, 4)
 
@@ -91,11 +87,13 @@ def evaluate_taxonomy(
             class_stats[exp_cls]["fn"] += 1
             if act_cls in class_stats:
                 class_stats[act_cls]["fp"] += 1
-            misclassifications.append({
-                "clause_id": clause_id,
-                "expected": exp_cls,
-                "actual": act_cls,
-            })
+            misclassifications.append(
+                {
+                    "clause_id": clause_id,
+                    "expected": exp_cls,
+                    "actual": act_cls,
+                }
+            )
 
     accuracy = correct_matches / total_clauses if total_clauses > 0 else 0.0
 
@@ -153,6 +151,7 @@ def evaluate_findings(
         dict: Evaluation results including detection precision/recall/F1, severity match rate,
               and citation grounding score.
     """
+
     # Key findings by category + clause if available, otherwise by category
     def finding_key(f: dict[str, Any]) -> tuple[str, str]:
         category = str(f.get("category", "")).upper()
@@ -201,5 +200,7 @@ def evaluate_findings(
         "f1": f1,
         "severity_accuracy": round(severity_accuracy, 4),
         "citation_grounding_score": round(grounding_score, 4),
-        "overall_alignment_score": round((f1 * 0.5 + severity_accuracy * 0.25 + grounding_score * 0.25) * 100, 2),
+        "overall_alignment_score": round(
+            (f1 * 0.5 + severity_accuracy * 0.25 + grounding_score * 0.25) * 100, 2
+        ),
     }

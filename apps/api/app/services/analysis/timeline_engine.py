@@ -6,7 +6,7 @@ Aggregates DATE entities and builds chronologies of contractual events.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import structlog
 
@@ -26,14 +26,14 @@ class TimelineEngine:
         Scan all DATE entities and generate TimelineEvent records.
         """
         events: list[TimelineEvent] = []
-        
+
         # Filter for dates
         date_entities = [e for e in entities if e.entity_type == "DATE"]
-        
+
         for entity in date_entities:
             # We use a very naive description generation for MVP
             # In a real system, the LLM would summarize the event based on the clause text
-            
+
             event = TimelineEvent(
                 id=generate_prefixed_uuid("tme"),
                 analysis_id=analysis_id,
@@ -44,7 +44,7 @@ class TimelineEngine:
                 related_entity_id=entity.id,
             )
             events.append(event)
-            
+
         logger.info(
             "timeline_generation_complete",
             document_id=document_id,

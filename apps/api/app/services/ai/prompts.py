@@ -11,7 +11,7 @@ from __future__ import annotations
 
 PROMPTS = {
     "chat_qa_v1": {
-        "system": """You are an expert legal assistant. 
+        "system": """You are an expert legal assistant.
 Your primary job is to answer questions about a provided legal document based ONLY on the provided context.
 You must be precise, professional, and deterministic. Do not hallucinate.
 
@@ -27,9 +27,10 @@ Context from document:
 
 User Question:
 {question}
-"""
+""",
     }
 }
+
 
 def get_prompt(prompt_id: str) -> dict[str, str]:
     """Retrieve a prompt template by ID."""

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import DateTime, MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -25,7 +24,7 @@ POSTGRES_INDEXES_NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     """SQLAlchemy Declarative Base with custom metadata."""
-    
+
     metadata = MetaData(naming_convention=POSTGRES_INDEXES_NAMING_CONVENTION)
 
 
@@ -37,7 +36,7 @@ class TimestampMixin:
         default=datetime.utcnow,
         nullable=False,
     )
-    
+
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         onupdate=datetime.utcnow,

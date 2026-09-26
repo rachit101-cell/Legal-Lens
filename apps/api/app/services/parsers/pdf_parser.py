@@ -23,7 +23,7 @@ def extract_pdf(
 ) -> list[CanonicalPage]:
     """
     Parse a PDF file into canonical pages and text blocks.
-    
+
     1. Loads the document via PyMuPDF.
     2. Iterates pages and extracts text dictionaries (blocks).
     3. Converts PyMuPDF blocks into CanonicalPage objects.
@@ -45,7 +45,7 @@ def extract_pdf(
     for page_index in range(len(doc)):
         page = doc[page_index]
         page_num = page_index + 1
-        
+
         # Get page dimensions
         rect = page.rect
         width, height = rect.width, rect.height
@@ -69,13 +69,13 @@ def extract_pdf(
                 for span in line.get("spans", []):
                     block_text += span.get("text", "") + " "
                 block_text = block_text.rstrip() + "\n"
-            
+
             block_text = block_text.strip()
             if not block_text:
                 continue
 
             bbox = block.get("bbox", [0.0, 0.0, 0.0, 0.0])
-            
+
             # Create canonical block
             canonical_block = TextBlock(
                 block_id=f"{document_id}_p{page_num}_b{block_order}",
@@ -89,9 +89,10 @@ def extract_pdf(
 
         # Combine block text into full page text
         full_page_text = "\n\n".join(page_text_parts)
-        
+
         # In a real implementation, we would hash the page content
         import hashlib
+
         content_hash = hashlib.sha256(full_page_text.encode("utf-8")).hexdigest()
 
         # If native extraction yields too little text, mark for OCR

@@ -6,7 +6,7 @@ Classifies clauses into standard legal taxonomy categories.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import structlog
 
@@ -21,7 +21,13 @@ TAXONOMY_RULES = {
     "Confidentiality": ["confidential", "confidentiality", "non-disclosure", "trade secret"],
     "Governing Law": ["governing law", "jurisdiction", "venue", "courts of"],
     "Payment": ["payment", "fee", "invoice", "taxes", "compensation"],
-    "Warranties": ["warranty", "warranties", "merchantability", "fitness for a particular purpose", "as is"],
+    "Warranties": [
+        "warranty",
+        "warranties",
+        "merchantability",
+        "fitness for a particular purpose",
+        "as is",
+    ],
 }
 
 
@@ -36,14 +42,14 @@ class TaxonomyService:
         for clause in clauses:
             text = clause.text.lower()
             assigned_class = None
-            
+
             # Simple keyword matching
             for tax_class, keywords in TAXONOMY_RULES.items():
                 if any(kw in text for kw in keywords):
                     assigned_class = tax_class
                     break
-                    
+
             if assigned_class:
                 clause.taxonomy_class = assigned_class
-                
+
         logger.info("taxonomy_classification_complete", count=len(clauses))

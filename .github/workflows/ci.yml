@@ -24,13 +24,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r apps/api/requirements.txt
-        pip install pytest pytest-asyncio pytest-cov httpx
+        pip install pytest pytest-asyncio pytest-cov httpx ruff
         
+    - name: Run Ruff Code Quality Lint
+      run: |
+        ruff check apps/api packages tests
+
     - name: Run Pytest Suite with Coverage
       env:
         PYTHONPATH: "apps/api:."
       run: |
-        pytest tests/ -v --cov=app --cov=tests/eval_metrics
+        pytest tests/ -v
         
     - name: Run Golden Dataset Evaluation Benchmark
       env:

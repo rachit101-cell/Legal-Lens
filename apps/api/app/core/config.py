@@ -8,7 +8,6 @@ explicit development warnings locally.
 
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -100,6 +99,7 @@ class Settings(BaseSettings):
                 return ["*"]
             if v_str.startswith("[") and v_str.endswith("]"):
                 import json
+
                 try:
                     parsed = json.loads(v_str)
                     if isinstance(parsed, list):
@@ -107,7 +107,7 @@ class Settings(BaseSettings):
                 except Exception:
                     pass
             return [origin.strip() for origin in v_str.split(",") if origin.strip()]
-        if isinstance(v, (list, tuple, set)):
+        if isinstance(v, list | tuple | set):
             return [str(origin).strip() for origin in v if str(origin).strip()]
         return ["http://localhost:3000"]
 
@@ -118,11 +118,11 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             s = v.strip()
             if s.startswith("postgres://"):
-                return "postgresql+psycopg://" + s[len("postgres://"):]
+                return "postgresql+psycopg://" + s[len("postgres://") :]
             if s.startswith("postgresql+psycopg2://"):
-                return "postgresql+psycopg://" + s[len("postgresql+psycopg2://"):]
+                return "postgresql+psycopg://" + s[len("postgresql+psycopg2://") :]
             if s.startswith("postgresql://"):
-                return "postgresql+psycopg://" + s[len("postgresql://"):]
+                return "postgresql+psycopg://" + s[len("postgresql://") :]
             return s
         return str(v)
 

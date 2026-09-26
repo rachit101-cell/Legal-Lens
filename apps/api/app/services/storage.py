@@ -7,13 +7,12 @@ Handles secure file storage and retrieval using S3-compatible backend (MinIO).
 from __future__ import annotations
 
 import io
-from datetime import timedelta
 from typing import BinaryIO
 
 import boto3
+import structlog
 from botocore.client import Config
 from botocore.exceptions import ClientError
-import structlog
 
 from app.core.config import get_settings
 
@@ -26,19 +25,24 @@ class StorageService:
     def __init__(self) -> None:
         """Initialize the storage service with settings."""
         self.settings = get_settings()
-        
+
         self.bucket = self.settings.object_storage_bucket
-        
+
         # Configure Boto3 client for MinIO / S3 / Supabase
         self.client = boto3.client(
             "s3",
             endpoint_url=self.settings.object_storage_endpoint,
             aws_access_key_id=self.settings.object_storage_access_key,
             aws_secret_access_key=self.settings.object_storage_secret_key,
-            config=Config(signature_version="s3v4", connect_timeout=1, read_timeout=2, retries={"max_attempts": 1}),
+            config=Config(
+                signature_version="s3v4",
+                connect_timeout=1,
+                read_timeout=2,
+                retries={"max_attempts": 1},
+            ),
             region_name=self.settings.object_storage_region,
         )
-        
+
         # Ensure bucket exists
         self._ensure_bucket()
 
@@ -56,7 +60,9 @@ class StorageService:
                     else:
                         self.client.create_bucket(
                             Bucket=self.bucket,
-                            CreateBucketConfiguration={"LocationConstraint": self.settings.object_storage_region},
+                            CreateBucketConfiguration={
+                                "LocationConstraint": self.settings.object_storage_region
+                            },
                         )
                 except Exception as create_err:
                     logger.warning("could_not_create_bucket_automatically", error=str(create_err))
@@ -76,7 +82,7 @@ class StorageService:
     ) -> str:
         """
         Store a private object in the bucket.
-        
+
         Returns the object name (key).
         """
         if isinstance(data, bytes):

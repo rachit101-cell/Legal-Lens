@@ -8,7 +8,6 @@ All endpoints query and return verified structured models.
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
@@ -77,8 +76,8 @@ async def get_clauses(
     request: Request,
     document_id: str,
     page: int = 1,
-    clause_type: Optional[str] = None,
-    q: Optional[str] = None,
+    clause_type: str | None = None,
+    q: str | None = None,
     limit: int = 50,
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
@@ -138,8 +137,8 @@ async def get_clauses(
 async def get_findings(
     request: Request,
     document_id: str,
-    severity: Optional[str] = None,
-    category: Optional[str] = None,
+    severity: str | None = None,
+    category: str | None = None,
     include_resolved: bool = False,
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
@@ -148,7 +147,7 @@ async def get_findings(
     """
     request_id = _get_request_id(request)
     analysis = await situation_analyzer.analyze_document(document_id, db)
-    
+
     findings = [f.model_dump(mode="json") for f in analysis.findings]
     if severity:
         findings = [f for f in findings if f.get("severity") == severity]

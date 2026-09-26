@@ -6,17 +6,17 @@ Provides async SQLAlchemy session maker and dependency injection setup.
 
 from __future__ import annotations
 
-from typing import AsyncGenerator
+import sys
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-import sys
 if sys.platform == "win32":
     import asyncio
-    try:
+    import contextlib
+
+    with contextlib.suppress(Exception):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    except Exception:
-        pass
 
 from app.core.config import get_settings
 
@@ -46,7 +46,7 @@ async_session_maker = async_sessionmaker(
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency function that yields a database session.
-    
+
     Usage:
         @router.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db_session)):

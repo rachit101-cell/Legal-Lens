@@ -8,6 +8,7 @@ contract clauses for a user's question.
 from __future__ import annotations
 
 import re
+
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +18,76 @@ from app.models.analysis import Clause
 logger = structlog.get_logger()
 
 STOPWORDS = {
-    "what", "is", "the", "and", "or", "of", "in", "to", "for", "with",
-    "on", "at", "by", "from", "up", "about", "into", "over", "after",
-    "are", "was", "were", "be", "been", "being", "have", "has", "had",
-    "do", "does", "did", "but", "if", "then", "else", "when", "where",
-    "why", "how", "all", "any", "both", "each", "few", "more", "most",
-    "other", "some", "such", "no", "nor", "not", "only", "own", "same",
-    "so", "than", "too", "very", "can", "will", "just", "should", "now",
-    "tell", "me", "does", "agreement", "contract", "document", "provision"
+    "what",
+    "is",
+    "the",
+    "and",
+    "or",
+    "of",
+    "in",
+    "to",
+    "for",
+    "with",
+    "on",
+    "at",
+    "by",
+    "from",
+    "up",
+    "about",
+    "into",
+    "over",
+    "after",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "but",
+    "if",
+    "then",
+    "else",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "any",
+    "both",
+    "each",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "no",
+    "nor",
+    "not",
+    "only",
+    "own",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+    "can",
+    "will",
+    "just",
+    "should",
+    "now",
+    "tell",
+    "me",
+    "agreement",
+    "contract",
+    "document",
+    "provision",
 }
 
 
@@ -43,13 +106,13 @@ class RetrievalEngine:
     ) -> list[Clause]:
         """
         Retrieve the most relevant clauses for a question.
-        
+
         Ranks clauses using keyword scoring against clause headings and body text,
         ensuring clauses from any page (including late sections like governing law,
         arbitration, and indemnities) are accurately prioritized.
         """
         logger.info("retrieval_search_started", query=query, document_id=document_id)
-        
+
         # 1. Fetch all clauses for this document
         stmt = (
             select(Clause)

@@ -41,28 +41,28 @@ class UploadService:
     ) -> dict[str, str]:
         """
         Process an uploaded document.
-        
+
         1. Calculates SHA-256
         2. Uploads to secure private storage
         3. Creates the Document record in the database
-        
+
         Returns a dict with document_id and analysis_id.
         """
         # Read content if it's a file-like object and calculate hash
         if not isinstance(content, bytes):
             content = content.read()
-            
+
         sha256 = hashlib.sha256(content).hexdigest()
         size_bytes = len(content)
 
         # Generate IDs
         doc_id = generate_prefixed_uuid("doc")
         analysis_id = generate_prefixed_uuid("run")
-        
+
         # Determine storage key
         # Format: documents/{owner_id}/{doc_id}.pdf
         storage_key = f"documents/{owner_id}/{doc_id}"
-        
+
         # 1. Upload to storage
         logger.info("uploading_to_storage", document_id=doc_id, size=size_bytes)
         storage_service.put_private(
@@ -74,6 +74,7 @@ class UploadService:
         # 2. Create DB Record
         ttl = retain_hours or self.settings.document_ttl_hours
         expires_at = datetime.utcnow() + timedelta(hours=ttl)
+        logger.info("document_retention_ttl_set", ttl_hours=ttl, expires_at=expires_at.isoformat())
 
         document = Document(
             id=doc_id,
@@ -87,12 +88,12 @@ class UploadService:
             storage_path=storage_key,
             analysis_id=analysis_id,
         )
-        
+
         # We don't have expire_at on Document model right now, it's just soft delete.
         # So we skip assigning expires_at to the model for now (it will be handled by TTL job based on created_at or we add it later)
-        
+
         await self.document_repo.create(document)
-        
+
         logger.info(
             "document_created",
             document_id=doc_id,

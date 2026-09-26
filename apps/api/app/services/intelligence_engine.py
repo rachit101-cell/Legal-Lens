@@ -13,14 +13,13 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.analysis import AnalysisRun
 from app.models.document import Page
 from app.repositories.analysis_repo import AnalysisRepository
+from app.services.analysis.finding_engine import FindingEngine
+from app.services.analysis.timeline_engine import TimelineEngine
 from app.services.intelligence.entity_extraction import EntityExtractionService
 from app.services.intelligence.segmentation import SegmentationService
 from app.services.intelligence.taxonomy import TaxonomyService
-from app.services.analysis.finding_engine import FindingEngine
-from app.services.analysis.timeline_engine import TimelineEngine
 from packages.schemas.enums import AnalysisStatus
 
 logger = structlog.get_logger()
@@ -42,18 +41,18 @@ class IntelligenceEngine:
         """
         Run the complete legal intelligence pipeline.
         """
-        logger.info("intelligence_analysis_started", analysis_id=analysis_id, document_id=document_id)
-        
+        logger.info(
+            "intelligence_analysis_started", analysis_id=analysis_id, document_id=document_id
+        )
+
         try:
             # Mark as running
             await self.analysis_repo.update_run_status(analysis_id, AnalysisStatus.RUNNING)
-            
+
             # Fetch all pages for the document
-            result = await self.session.execute(
-                select(Page).where(Page.document_id == document_id)
-            )
+            result = await self.session.execute(select(Page).where(Page.document_id == document_id))
             pages = result.scalars().all()
-            
+
             if not pages:
                 logger.warning("no_pages_found_for_analysis", document_id=document_id)
                 await self.analysis_repo.update_run_status(analysis_id, AnalysisStatus.COMPLETED)
@@ -61,25 +60,30 @@ class IntelligenceEngine:
 
             # 1. Segmentation
             sections, clauses = self.segmentation_service.segment_document(document_id, pages)
-            
+
             # 2. Taxonomy Classification
             self.taxonomy_service.classify_clauses(clauses)
-            
+
             # 3. Entity Extraction
             entities = self.entity_service.extract_entities(document_id, clauses)
-            
+
             # 3.5 Generate Embeddings
             # In a real app we'd do this in batch
             from app.services.retrieval.embedding_service import embedding_service
+
             for clause in clauses:
                 clause.embedding = embedding_service.embed_text(clause.text)
 
             # 4. Findings Generation
-            findings = self.finding_engine.generate_findings(document_id, analysis_id, clauses, entities)
+            findings = self.finding_engine.generate_findings(
+                document_id, analysis_id, clauses, entities
+            )
 
             # 5. Timeline Generation
-            timeline_events = self.timeline_engine.generate_timeline(document_id, analysis_id, entities)
-            
+            timeline_events = self.timeline_engine.generate_timeline(
+                document_id, analysis_id, entities
+            )
+
             # 6. Save to Database
             # Assign analysis_id to all generated entities
             for s in sections:
@@ -94,11 +98,13 @@ class IntelligenceEngine:
             await self.analysis_repo.save_entities(entities)
             await self.analysis_repo.save_findings(findings)
             await self.analysis_repo.save_timeline_events(timeline_events)
-            
+
             # Mark as completed
             await self.analysis_repo.update_run_status(analysis_id, AnalysisStatus.COMPLETED)
-            
-            logger.info("intelligence_analysis_completed", analysis_id=analysis_id, document_id=document_id)
+
+            logger.info(
+                "intelligence_analysis_completed", analysis_id=analysis_id, document_id=document_id
+            )
 
         except Exception as e:
             logger.error("intelligence_analysis_failed", analysis_id=analysis_id, error=str(e))

@@ -1,0 +1,106 @@
+{
+  "document_id": "golden_tenant_notice_1",
+  "document_type": "LEGAL_NOTICE",
+  "document_type_label": "Legal Notice / Demand to Cure Default",
+  "page_count": 3,
+  "parties": [
+    {
+      "name": "Alex Mercer",
+      "role": "Tenant",
+      "address": "Apartment 4B, 102 Parkside Avenue, New York, NY 10025"
+    },
+    {
+      "name": "Vanguard Properties LLC",
+      "role": "Landlord",
+      "address": "500 Madison Avenue, New York, NY 10022"
+    },
+    {
+      "name": "Sterling & Cole LLP",
+      "role": "Landlord Counsel / Representative",
+      "address": "500 Madison Avenue, New York, NY 10022"
+    }
+  ],
+  "financial_demands": [
+    {
+      "amount": 2500.00,
+      "currency": "USD",
+      "purpose": "Unpaid rent for October 2026",
+      "page": 1
+    }
+  ],
+  "deadlines_and_durations": [
+    {
+      "type": "RESPONSE_DEADLINE",
+      "duration_days": 15,
+      "description": "15-day response deadline to tender $2,500 or provide written proof",
+      "page": 2,
+      "date_status": "DERIVED"
+    },
+    {
+      "type": "TERMINATION_NOTICE_PERIOD",
+      "duration_days": 30,
+      "description": "30-day written notice required prior to lease termination",
+      "page": 2,
+      "date_status": "EXPLICIT"
+    }
+  ],
+  "missing_information": [
+    "Underlying Residential Lease Agreement dated January 15, 2024 is referenced (Section 14.2) but has NOT been provided or attached.",
+    "Section 14.2 early termination penalty schedule and mitigation obligations cannot be verified without the original lease.",
+    "Proof of certified mail or verified delivery receipt is absent from the notice."
+  ],
+  "attention_findings": [
+    {
+      "id": "finding_1",
+      "category": "DEADLINE",
+      "severity": "IMPORTANT",
+      "title": "Strict 15-Day Cure Response Deadline",
+      "description": "Failure to tender $2,500 or provide written proof within 15 days allows Landlord to commence summary eviction proceedings.",
+      "page": 2,
+      "evidence_quote": "You are hereby given a strict response deadline of fifteen (15) days from the date of receipt of this notice"
+    },
+    {
+      "id": "finding_2",
+      "category": "TERMINATION",
+      "severity": "IMPORTANT",
+      "title": "30-Day Conditional Tenancy Termination",
+      "description": "The Landlord reserves the right to terminate tenancy upon giving 30 days written notice.",
+      "page": 2,
+      "evidence_quote": "Landlord reserves the right to terminate the tenancy upon giving a thirty (30) days written termination notice."
+    },
+    {
+      "id": "finding_3",
+      "category": "MISSING_INFORMATION",
+      "severity": "NEEDS_REVIEW",
+      "title": "Unattached Underlying Lease Agreement",
+      "description": "Document explicitly cites Section 14.2 of an unsupplied January 15, 2024 Residential Lease Agreement for early termination penalties.",
+      "page": 3,
+      "evidence_quote": "The Underlying Lease Agreement is referenced herein but has NOT been attached or provided with this notice."
+    },
+    {
+      "id": "finding_4",
+      "category": "FINANCIAL",
+      "severity": "IMPORTANT",
+      "title": "Formal Monetary Demand for $2,500.00",
+      "description": "The notice claims outstanding payment arrears of $2,500.00.",
+      "page": 1,
+      "evidence_quote": "The total amount overdue and payable is $2,500.00"
+    }
+  ],
+  "lawyer_questions": [
+    "Does local New York City tenant protection law require a 14-day statutory rent demand notice before initiating eviction court proceedings?",
+    "Can the landlord enforce Section 14.2 early lease termination penalties if the underlying lease was never attached to the cure notice?",
+    "What specific accounting or rent receipt records should I present to prove payment or contest the $2,500 amount?"
+  ],
+  "checklist": [
+    "Locate and review the original signed Residential Lease Agreement dated January 15, 2024.",
+    "Gather bank statements, canceled checks, or wire transfer receipts for October 2026 rent payment.",
+    "Prepare a formal written response before the 15-day deadline (November 1, 2026) sent via certified mail with return receipt requested.",
+    "Schedule an intake consultation with a qualified tenant rights attorney or legal aid specialist."
+  ],
+  "three_layer_breakdown": {
+    "what_document_says": "Alex Mercer owes $2,500.00 for October 2026 rent, must respond within 15 days, Landlord may give 30-day termination notice, cites unattached Jan 15 2024 lease.",
+    "what_legallens_generated": "Triaged 1 Critical Deadline (15 days), 1 Important Termination Risk (30 days), 1 Missing Information finding (unattached lease). Derived deadline date: October 30, 2026.",
+    "external_context": "Dispute rules and statutory cure periods are subject to local housing law. LegalLens is an information tool, not legal counsel."
+  }
+}

@@ -8,7 +8,6 @@ data after the 24-hour TTL expires.
 from __future__ import annotations
 
 import datetime
-from datetime import timezone
 
 import structlog
 from sqlalchemy import delete
@@ -30,17 +29,17 @@ class RetentionService:
         Delete all documents (and cascaded data) older than 24 hours.
         Returns the number of documents deleted.
         """
-        threshold = datetime.datetime.now(timezone.utc) - datetime.timedelta(hours=24)
-        
+        threshold = datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=24)
+
         # In SQLAlchemy, if cascade="all, delete-orphan" is set on relationships,
         # deleting the parent Document will cascade to AnalysisRuns, Pages, Clauses, etc.
         stmt = delete(Document).where(Document.created_at < threshold)
-        
+
         result = await self.session.execute(stmt)
         await self.session.commit()
-        
+
         deleted_count = result.rowcount
         if deleted_count > 0:
             logger.info("retention_scrub_completed", deleted_documents=deleted_count)
-            
+
         return deleted_count

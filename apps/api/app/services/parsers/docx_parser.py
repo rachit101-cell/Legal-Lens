@@ -24,7 +24,7 @@ def extract_docx(
 ) -> list[CanonicalPage]:
     """
     Parse a DOCX file into canonical pages and text blocks.
-    
+
     Since DOCX does not have fixed pages in the same way PDF does,
     this creates a single virtual "page" or splits arbitrarily based
     on page breaks if they exist. For MVP, we treat the entire document
@@ -50,7 +50,7 @@ def extract_docx(
         text = para.text.strip()
         if not text:
             continue
-            
+
         # Create canonical block
         # Bbox is None for DOCX since it's flow layout
         canonical_block = TextBlock(
@@ -71,12 +71,12 @@ def extract_docx(
                 text = cell.text.strip()
                 if text:
                     row_data.append(text)
-            
+
             if not row_data:
                 continue
-                
+
             row_text = " | ".join(row_data)
-            
+
             canonical_block = TextBlock(
                 block_id=f"{document_id}_p1_b{block_order}",
                 text=row_text,

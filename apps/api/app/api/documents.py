@@ -8,9 +8,7 @@ All endpoints enforce ownership checks.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import uuid
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated
 
@@ -32,6 +30,7 @@ from packages.schemas.enums import (
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/documents", tags=["documents"])
+_background_tasks: set[asyncio.Task[None]] = set()
 
 
 def _get_request_id(request: Request) -> str:
@@ -76,7 +75,7 @@ async def _process_document_background(document_id: str) -> None:
     """Process document in background after upload."""
     from app.db.session import async_session_maker
     from app.services.document_engine import DocumentEngine
-    
+
     try:
         async with async_session_maker() as session:
             engine = DocumentEngine(session)
@@ -100,7 +99,7 @@ async def upload_document(
     Returns 202 with document and analysis IDs.
     """
     request_id = _get_request_id(request)
-    
+
     # ── Validate filename and extension ──────────────────────
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")
@@ -131,10 +130,10 @@ async def upload_document(
     # ── Process Upload ───────────────────────────────────────
     # TODO: Get real owner_id from auth context
     owner_id = "demo_user"
-    
+
     document_repo = DocumentRepository(db)
     upload_service = UploadService(document_repo)
-    
+
     result = await upload_service.process_upload(
         owner_id=owner_id,
         filename=file.filename,
@@ -145,7 +144,9 @@ async def upload_document(
     )
 
     # Trigger document processing in the background
-    asyncio.create_task(_process_document_background(result["document_id"]))
+    task = asyncio.create_task(_process_document_background(result["document_id"]))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
     return UploadResponse(
         request_id=request_id,
@@ -157,21 +158,19 @@ async def upload_document(
 
 @router.get("/{document_id}", response_model=DocumentResponse)
 async def get_document(
-    request: Request, 
-    document_id: str,
-    db: AsyncSession = Depends(get_db_session)
+    request: Request, document_id: str, db: AsyncSession = Depends(get_db_session)
 ) -> DocumentResponse:
     """
     Get document metadata and processing state.
     """
     request_id = _get_request_id(request)
-    
+
     # TODO: Get real owner_id from auth context
     owner_id = "demo_user"
 
     document_repo = DocumentRepository(db)
     doc = await document_repo.get_by_owner_and_id(owner_id, document_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404)
 
@@ -198,6 +197,7 @@ async def get_document_pages(
 ) -> dict:
     """Get extracted text pages for the document viewer."""
     from sqlalchemy import select
+
     from app.models.document import Page
 
     request_id = _get_request_id(request)
@@ -228,11 +228,10 @@ async def get_document_pages(
 
 from fastapi import Response
 
+
 @router.delete("/{document_id}", status_code=204, response_class=Response, response_model=None)
 async def delete_document(
-    request: Request, 
-    document_id: str,
-    db: AsyncSession = Depends(get_db_session)
+    request: Request, document_id: str, db: AsyncSession = Depends(get_db_session)
 ) -> None:
     """
     Soft-delete a document and cascade to all dependent data.
@@ -244,7 +243,7 @@ async def delete_document(
 
     document_repo = DocumentRepository(db)
     doc = await document_repo.get_by_owner_and_id(owner_id, document_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404)
 

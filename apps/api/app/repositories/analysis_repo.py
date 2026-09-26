@@ -6,13 +6,12 @@ Data access layer for AnalysisRuns, Sections, Clauses, and Entities.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.models.analysis import AnalysisRun, Clause, Entity, Section, Finding, TimelineEvent
+from app.models.analysis import AnalysisRun, Clause, Entity, Finding, Section, TimelineEvent
 from packages.schemas.enums import AnalysisStatus
 
 
@@ -80,17 +79,13 @@ class AnalysisRepository:
     async def get_clauses_by_document(self, document_id: str) -> Sequence[Clause]:
         """Get all clauses for a document."""
         result = await self.session.execute(
-            select(Clause)
-            .where(Clause.document_id == document_id)
-            .order_by(Clause.sequence_order)
+            select(Clause).where(Clause.document_id == document_id).order_by(Clause.sequence_order)
         )
         return result.scalars().all()
 
     async def get_entities_by_document(self, document_id: str) -> Sequence[Entity]:
         """Get all entities for a document."""
-        result = await self.session.execute(
-            select(Entity).where(Entity.document_id == document_id)
-        )
+        result = await self.session.execute(select(Entity).where(Entity.document_id == document_id))
         return result.scalars().all()
 
     async def get_findings_by_analysis(self, analysis_id: str) -> Sequence[Finding]:

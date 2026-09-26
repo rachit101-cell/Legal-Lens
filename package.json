@@ -1,0 +1,22 @@
+{
+  "name": "legallens",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LegalLens - Deterministic AI Legal Document Risk & Action Navigator",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "start": "npm --prefix apps/web run start",
+    "lint": "npm --prefix apps/web run lint",
+    "lint:python": "python -m ruff check apps/api packages tests",
+    "test": "npm --prefix apps/web run test",
+    "test:frontend": "npm --prefix apps/web run test",
+    "test:backend": "pytest tests/ -v",
+    "test:golden": "python scripts/run_evaluation.py",
+    "test:all": "npm test && pytest tests/ -v && python scripts/run_evaluation.py",
+    "eval": "python scripts/run_evaluation.py"
+  }
+}

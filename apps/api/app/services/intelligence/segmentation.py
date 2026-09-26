@@ -8,7 +8,7 @@ In a full production environment, this could be augmented by NLP/AI models.
 from __future__ import annotations
 
 import re
-from typing import Sequence
+from collections.abc import Sequence
 
 import structlog
 
@@ -37,7 +37,7 @@ class SegmentationService:
         """
         sections: list[Section] = []
         clauses: list[Clause] = []
-        
+
         current_section = None
         clause_order = 0
         section_order = 0
@@ -48,24 +48,22 @@ class SegmentationService:
         for page in sorted_pages:
             # We assume blocks are stored as JSON list in page.blocks
             blocks = sorted(page.blocks, key=lambda b: b.get("order", 0))
-            
+
             for block in blocks:
                 text = block.get("text", "").strip()
                 if not text:
                     continue
-                
+
                 # Check if it's a section header
                 # We use a simple heuristic: short text, matches pattern or is all caps
                 is_header = False
                 title = text
-                
+
                 if len(text) < 150:
                     match = SECTION_PATTERN.match(text)
-                    if match:
+                    if match or (text.isupper() and len(text.split()) < 10):
                         is_header = True
-                    elif text.isupper() and len(text.split()) < 10:
-                        is_header = True
-                
+
                 if is_header:
                     # Create new section
                     current_section = Section(
@@ -91,10 +89,10 @@ class SegmentationService:
                         taxonomy_class=None,  # Filled later by Taxonomy service
                     )
                     clauses.append(clause)
-                    
+
                     if current_section and page.id not in current_section.source_page_ids:
                         current_section.source_page_ids.append(page.id)
-                        
+
                     clause_order += 1
 
         logger.info(

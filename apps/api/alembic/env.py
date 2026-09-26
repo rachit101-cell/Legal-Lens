@@ -1,6 +1,6 @@
 import asyncio
-import sys
 import os
+import sys
 from logging.config import fileConfig
 
 # Add the apps/api directory to sys.path so 'app' can be found
@@ -11,7 +11,7 @@ sys.path.insert(0, api_dir)
 root_dir = os.path.dirname(os.path.dirname(api_dir))
 sys.path.insert(0, root_dir)
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from alembic import context
@@ -21,9 +21,6 @@ from app.core.config import get_settings
 from app.models.base import Base
 
 # Import all models to ensure they are registered with the Base metadata
-from app.models.document import Document, Page, Section
-from app.models.analysis import AnalysisRun, Clause, Entity, Finding, TimelineEvent, ChecklistItem
-from app.models.chat import Evidence, Claim, ChatSession, ChatMessage
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

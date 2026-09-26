@@ -23,6 +23,7 @@ INJECTION_PATTERNS = [
     r"(?i)print\s+your\s+instructions",
 ]
 
+
 class PromptDefense:
     """Service to defend against prompt injection."""
 
@@ -38,5 +39,6 @@ class PromptDefense:
                 logger.warning("prompt_injection_detected", matched_pattern=pattern.pattern)
                 return False
         return True
+
 
 prompt_defense = PromptDefense()

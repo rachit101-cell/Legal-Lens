@@ -6,7 +6,7 @@ Data access layer for documents.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,19 +24,13 @@ class DocumentRepository:
 
     async def get(self, document_id: str) -> Document | None:
         """Get a document by ID."""
-        result = await self.session.execute(
-            select(Document).where(Document.id == document_id)
-        )
+        result = await self.session.execute(select(Document).where(Document.id == document_id))
         return result.scalar_one_or_none()
 
-    async def get_by_owner_and_id(
-        self, owner_id: str, document_id: str
-    ) -> Document | None:
+    async def get_by_owner_and_id(self, owner_id: str, document_id: str) -> Document | None:
         """Get a document by ID and owner."""
         result = await self.session.execute(
-            select(Document).where(
-                Document.id == document_id, Document.owner_id == owner_id
-            )
+            select(Document).where(Document.id == document_id, Document.owner_id == owner_id)
         )
         return result.scalar_one_or_none()
 

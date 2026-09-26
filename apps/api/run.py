@@ -1,6 +1,6 @@
-import sys
 import asyncio
 import os
+import sys
 
 # Ensure UTF-8 I/O to prevent Windows 'charmap' encoding errors
 os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -10,7 +10,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # Fix for psycopg on Windows with asyncio
-if sys.platform == 'win32':
+if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 import uvicorn

@@ -6,7 +6,6 @@ Uses Tesseract OCR to extract text from images or scanned PDFs.
 
 from __future__ import annotations
 
-import io
 from typing import BinaryIO
 
 import structlog
@@ -26,7 +25,7 @@ def extract_ocr(
 ) -> list[CanonicalPage]:
     """
     Perform OCR on a document to extract text.
-    
+
     Currently a stub. In a full implementation, this would:
     1. Convert PDF pages to images.
     2. Run pytesseract on each image to extract text and bboxes.

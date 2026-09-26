@@ -17,7 +17,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
-        
+
         # CSP: Restrict sources to self, block inline scripts (unless nonce'd), block objects
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
@@ -27,19 +27,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "base-uri 'self'; "
             "frame-ancestors 'none';"
         )
-        
+
         # Prevent MIME type sniffing
         response.headers["X-Content-Type-Options"] = "nosniff"
-        
+
         # Prevent clickjacking
         response.headers["X-Frame-Options"] = "DENY"
-        
+
         # Enable XSS protection
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        
+
         # Enforce HSTS
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        
+
         return response
 
 

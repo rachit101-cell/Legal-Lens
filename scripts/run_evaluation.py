@@ -86,9 +86,55 @@ def run_golden_evaluation() -> dict:
 
     finding_metrics = evaluate_findings("golden_nda_1", expected_findings, actual_findings)
 
+    # 2. Golden Tenant Notice Evaluation
+    tenant_file = REPO_ROOT / "tests" / "golden_set" / "sample_tenant_notice.txt"
+    tenant_text = tenant_file.read_text(encoding="utf-8") if tenant_file.exists() else ""
+    t_clauses = _split_into_clauses(tenant_text, document_id="golden_tenant_1", page_number=1)
+
+    from app.models.analysis import Clause as DBClause
+    from app.services.analysis.situation_analyzer import situation_analyzer
+
+    db_clauses = [
+        DBClause(
+            id=f"c_{i+1}",
+            document_id="golden_tenant_1",
+            section_id="sec_1",
+            page_start=1 if i < 2 else (2 if i < 4 else 3),
+            page_end=1 if i < 2 else (2 if i < 4 else 3),
+            number=str(i + 1),
+            heading=f"Clause {i+1}",
+            original_text=c["text"],
+            normalized_text=c["text"].lower(),
+            clause_type=_classify_clause(c["text"]),
+        )
+        for i, c in enumerate(t_clauses)
+    ]
+
+    t_findings, t_missing = situation_analyzer._generate_findings(
+        "golden_tenant_1", db_clauses, tenant_text, []
+    )
+
+    t_expected = [
+        {"category": "DEADLINE", "severity": "IMPORTANT", "clause_id": ""},
+        {"category": "TERMINATION", "severity": "IMPORTANT", "clause_id": ""},
+        {"category": "MISSING_INFORMATION", "severity": "NEEDS_REVIEW", "clause_id": ""},
+        {"category": "FINANCIAL", "severity": "IMPORTANT", "clause_id": ""},
+    ]
+    t_actual = [
+        {
+            "category": f.category.value,
+            "severity": f.severity.value,
+            "clause_id": "",
+            "evidence_quote": f.explanation,
+        }
+        for f in t_findings
+    ]
+    tenant_metrics = evaluate_findings("golden_tenant_1", t_expected, t_actual)
+
     return {
         "taxonomy": tax_metrics,
         "findings": finding_metrics,
+        "tenant_notice": tenant_metrics,
     }
 
 
@@ -100,26 +146,38 @@ def main():
     results = run_golden_evaluation()
     tax = results["taxonomy"]
     findings = results["findings"]
+    tenant = results["tenant_notice"]
 
-    print("\n[1] Taxonomy Classification Benchmark:")
+    print("\n[1] Taxonomy Classification Benchmark (Golden NDA):")
     print(f"    Total Clauses Evaluated: {tax['total_clauses']}")
     print(f"    Correct Classifications: {tax['correct_matches']}")
     print(f"    Accuracy:                {tax['accuracy'] * 100:.1f}%")
     print(f"    Macro F1 Score:          {tax['macro_f1'] * 100:.1f}%")
 
-    print("\n[2] Risk Findings Detection & Calibration:")
+    print("\n[2] Risk Findings Detection & Calibration (Golden NDA):")
     print(f"    Expected Findings:       {findings['expected_count']}")
     print(f"    Actual Findings Found:   {findings['actual_count']}")
     print(f"    Precision:               {findings['precision'] * 100:.1f}%")
     print(f"    Recall:                  {findings['recall'] * 100:.1f}%")
     print(f"    F1 Score:                {findings['f1'] * 100:.1f}%")
     print(f"    Severity Accuracy:       {findings['severity_accuracy'] * 100:.1f}%")
-    print(f"    Citation Grounding:      {findings['citation_grounding_score'] * 100:.1f}%")
     print(f"    Overall Alignment Score: {findings['overall_alignment_score']:.1f}%")
 
+    print("\n[3] PRD Canonical Scenario (3-Page Synthetic Tenant Notice):")
+    print(f"    Expected Findings:       {tenant['expected_count']}")
+    print(f"    Actual Findings Found:   {tenant['actual_count']}")
+    print(f"    Precision:               {tenant['precision'] * 100:.1f}%")
+    print(f"    Recall:                  {tenant['recall'] * 100:.1f}%")
+    print(f"    F1 Score:                {tenant['f1'] * 100:.1f}%")
+    print(f"    Severity Accuracy:       {tenant['severity_accuracy'] * 100:.1f}%")
+    print(f"    Overall Alignment Score: {tenant['overall_alignment_score']:.1f}%")
+
+    combined_alignment = (findings["overall_alignment_score"] + tenant["overall_alignment_score"]) / 2.0
+    print(f"\n[+] Combined Golden Alignment Score: {combined_alignment:.1f}%")
+
     print("\n" + "=" * 68)
-    if tax["accuracy"] >= 0.75 and findings["overall_alignment_score"] >= 95.0:
-        print("  Status: PASSED (Exceeds 95% Submission Benchmark Threshold)")
+    if tax["accuracy"] >= 0.75 and combined_alignment >= 95.0:
+        print(f"  Status: PASSED (Combined {combined_alignment:.1f}% >= 95% Benchmark Threshold)")
         print("=" * 68)
         sys.exit(0)
     else:

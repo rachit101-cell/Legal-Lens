@@ -6,11 +6,10 @@ Data access layer for chat sessions, messages, and claims.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.models.chat import ChatMessage, ChatSession, Claim, Evidence
 
@@ -30,9 +29,7 @@ class ChatRepository:
 
     async def get_session(self, session_id: str) -> ChatSession | None:
         """Get a chat session by ID."""
-        result = await self.session.execute(
-            select(ChatSession).where(ChatSession.id == session_id)
-        )
+        result = await self.session.execute(select(ChatSession).where(ChatSession.id == session_id))
         return result.scalar_one_or_none()
 
     async def save_message(self, message: ChatMessage) -> ChatMessage:
@@ -63,7 +60,5 @@ class ChatRepository:
 
     async def get_claims_for_message(self, message_id: str) -> Sequence[Claim]:
         """Get claims associated with a specific message."""
-        result = await self.session.execute(
-            select(Claim).where(Claim.message_id == message_id)
-        )
+        result = await self.session.execute(select(Claim).where(Claim.message_id == message_id))
         return result.scalars().all()
